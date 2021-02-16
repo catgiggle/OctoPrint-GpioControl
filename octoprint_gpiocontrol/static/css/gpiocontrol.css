@@ -1,0 +1,16 @@
+.gpiocontrol-button-row .gpiocontrol-button-label {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.gpiocontrol-button-row .gpiocontrol-button-label i {
+    width: 20px;
+}
+
+.gpiocontrol-button-row .gpiocontrol-button-controls .btn {
+    width: 50%;
+}
+
+.gpiocontrol-settings-row {
+    margin-bottom: 5px
+}

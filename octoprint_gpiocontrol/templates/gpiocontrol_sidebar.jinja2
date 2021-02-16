@@ -1,0 +1,12 @@
+<div data-bind="foreach: gpioButtons">
+    <div class="gpiocontrol-button-row fluid-row">
+        <div class="gpiocontrol-button-label span7">
+            <i data-bind="class: icon"></i>
+            <span data-bind="text: name"></span>
+        </div>
+        <div class="gpiocontrol-button-controls input-prepend input-append span5">
+            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOn, attr : {'disabled' : current_state != 'off'}">ON</button>
+            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOff, attr : {'disabled' : current_state != 'on'}">OFF</button>
+        </div>
+    </div>
+</div>
