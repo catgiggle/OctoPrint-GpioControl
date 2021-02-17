@@ -4,8 +4,8 @@ GPIO Control adds a sidebar with on/off buttons. You can add as many buttons as 
 
 Very useful if you want to add some electronic/improvements to your printer.
 
-![GpioControl](extras/sidebar.png)
-![GpioControl](extras/settings.png)
+![GpioControl](assets/sidebar.png)
+![GpioControl](assets/settings.png)
 
 ## Setup
 
