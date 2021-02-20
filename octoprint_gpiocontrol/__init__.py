@@ -175,6 +175,18 @@ class GpioControlPlugin(
                 user="catgiggle",
                 repo="OctoPrint-GpioControl",
                 current=self._plugin_version,
+                stable_branch=dict(
+                    name="Stable",
+                    branch="master",
+                    comittish=["master"],
+                ),
+                prerelease_branches=[
+                    dict(
+                        name="Prerelease",
+                        branch="development",
+                        comittish=["development", "master"],
+                    )
+                ],
                 pip="https://github.com/catgiggle/OctoPrint-GpioControl/archive/{target_version}.zip",
             )
         )
