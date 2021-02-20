@@ -57,25 +57,27 @@ $(function () {
                 }
             }));
 
-            self.gpioButtons().forEach(function (item, index) {
-                OctoPrint.simpleApiCommand("gpiocontrol", "getGpioState", {id: index}).then(function (state) {
+            OctoPrint.simpleApiGet("gpiocontrol").then(function (states) {
+                self.gpioButtons().forEach(function (item, index) {
                     self.gpioButtons.replace(item, {
                         icon: item.icon,
                         name: item.name,
-                        current_state: state,
+                        current_state: states[index],
                     });
                 });
             });
         }
 
         self.turnGpioOn = function () {
-            OctoPrint.simpleApiCommand("gpiocontrol", "turnGpioOn", {id: self.gpioButtons.indexOf(this)});
-            self.updateGpioButtons();
+            OctoPrint.simpleApiCommand("gpiocontrol", "turnGpioOn", {id: self.gpioButtons.indexOf(this)}).then(function () {
+                self.updateGpioButtons();
+            });
         }
 
         self.turnGpioOff = function () {
-            OctoPrint.simpleApiCommand("gpiocontrol", "turnGpioOff", {id: self.gpioButtons.indexOf(this)});
-            self.updateGpioButtons();
+            OctoPrint.simpleApiCommand("gpiocontrol", "turnGpioOff", {id: self.gpioButtons.indexOf(this)}).then(function () {
+                self.updateGpioButtons();
+            });
         }
     }
 

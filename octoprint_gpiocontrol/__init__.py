@@ -124,7 +124,19 @@ class GpioControlPlugin(
         return dict(turnGpioOn=["id"], turnGpioOff=["id"], getGpioState=["id"])
 
     def on_api_get(self, request):
-        return self.on_api_command("getGpioState", [])
+        states = []
+
+        for configuration in self._settings.get(["gpio_configurations"]):
+            pin = self.get_pin_number(int(configuration["pin"]))
+
+            if pin < 0:
+                states.append("")
+            elif configuration["active_mode"] == "active_low":
+                states.append("off" if GPIO.input(pin) else "on")
+            elif configuration["active_mode"] == "active_high":
+                states.append("on" if GPIO.input(pin) else "off")
+
+        return flask.jsonify(states)
 
     def on_api_command(self, command, data):
         configuration = self._settings.get(["gpio_configurations"])[int(data["id"])]
@@ -133,7 +145,7 @@ class GpioControlPlugin(
         if command == "getGpioState":
             if pin < 0:
                 return flask.jsonify("")
-            if configuration["active_mode"] == "active_low":
+            elif configuration["active_mode"] == "active_low":
                 return flask.jsonify("off" if GPIO.input(pin) else "on")
             elif configuration["active_mode"] == "active_high":
                 return flask.jsonify("on" if GPIO.input(pin) else "off")
