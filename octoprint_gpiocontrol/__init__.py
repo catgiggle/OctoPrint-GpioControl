@@ -124,7 +124,11 @@ class GpioControlPlugin(
         return dict(turnGpioOn=["id"], turnGpioOff=["id"], getGpioState=["id"])
 
     def on_api_get(self, request):
-        return self.on_api_command("getGpioState", [])
+        configuration = self._settings.get(["gpio_configurations"])
+        result = {}
+        for idx, gpio in enumerate(configuration):
+            result[idx] = str(self.on_api_command("getGpioState", {"id": idx}).get_json())
+        return flask.jsonify(result)
 
     def on_api_command(self, command, data):
         configuration = self._settings.get(["gpio_configurations"])[int(data["id"])]
