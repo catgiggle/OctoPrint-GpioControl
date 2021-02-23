@@ -1,8 +1,8 @@
 # coding=utf-8
 from __future__ import absolute_import, print_function
+from octoprint.server import user_permission
 
 import octoprint.plugin
-import octoprint.server
 import flask
 import RPi.GPIO as GPIO
 
@@ -119,28 +119,13 @@ class GpioControlPlugin(
                     elif configuration["default_state"] == "default_off":
                         GPIO.output(pin, GPIO.LOW)
 
-    def is_api_adminonly(self):
-        return True
-
     def get_api_commands(self):
         return dict(turnGpioOn=["id"], turnGpioOff=["id"], getGpioState=["id"])
 
-    def on_api_get(self, request):
-        states = []
-
-        for configuration in self._settings.get(["gpio_configurations"]):
-            pin = self.get_pin_number(int(configuration["pin"]))
-
-            if pin < 0:
-                states.append("")
-            elif configuration["active_mode"] == "active_low":
-                states.append("off" if GPIO.input(pin) else "on")
-            elif configuration["active_mode"] == "active_high":
-                states.append("on" if GPIO.input(pin) else "off")
-
-        return flask.jsonify(states)
-
     def on_api_command(self, command, data):
+        if not user_permission.can():
+            return flask.make_response("Insufficient rights", 403)
+
         configuration = self._settings.get(["gpio_configurations"])[int(data["id"])]
         pin = self.get_pin_number(int(configuration["pin"]))
 
@@ -167,6 +152,21 @@ class GpioControlPlugin(
                     GPIO.output(pin, GPIO.HIGH)
                 elif configuration["active_mode"] == "active_high":
                     GPIO.output(pin, GPIO.LOW)
+
+    def on_api_get(self, request):
+        states = []
+
+        for configuration in self._settings.get(["gpio_configurations"]):
+            pin = self.get_pin_number(int(configuration["pin"]))
+
+            if pin < 0:
+                states.append("")
+            elif configuration["active_mode"] == "active_low":
+                states.append("off" if GPIO.input(pin) else "on")
+            elif configuration["active_mode"] == "active_high":
+                states.append("on" if GPIO.input(pin) else "off")
+
+        return flask.jsonify(states)
 
     def get_update_information(self):
         return dict(
@@ -196,17 +196,12 @@ class GpioControlPlugin(
     PIN_MAPPINGS = [-1, -1, 3, 5, 7, 29, 31, 26, 24, 21, 19, 23, 32, 33, 8, 10, 36, 11, 12, 35, 38, 40, 15, 16, 18, 22, 37, 13]
 
     def get_pin_number(self, pin):
-        if self.mode == GPIO.BCM:
-            if 2 <= pin <= 27:
+        if 2 <= pin <= 27:
+            if self.mode == GPIO.BCM:
                 return pin
-            else:
-                return -1
 
-        if self.mode == GPIO.BOARD:
-            if 1 <= pin <= 40:
+            if self.mode == GPIO.BOARD:
                 return self.PIN_MAPPINGS[pin]
-            else:
-                return -1
 
         return -1
 
