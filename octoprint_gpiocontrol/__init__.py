@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import octoprint.plugin
 import octoprint.server
@@ -15,12 +15,14 @@ class GpioControlPlugin(
     octoprint.plugin.SimpleApiPlugin,
     octoprint.plugin.RestartNeedingPlugin,
 ):
+    mode = None
+
     def on_startup(self, *args, **kwargs):
         GPIO.setwarnings(False)
 
         self.mode = GPIO.getmode()
 
-        if self.mode == None:
+        if self.mode is None:
             self.mode = GPIO.BCM
             GPIO.setmode(self.mode)
 
@@ -195,13 +197,13 @@ class GpioControlPlugin(
 
     def get_pin_number(self, pin):
         if self.mode == GPIO.BCM:
-            if pin >= 2 and pin <= 27:
+            if 2 <= pin <= 27:
                 return pin
             else:
                 return -1
 
         if self.mode == GPIO.BOARD:
-            if pin >= 1 and pin <= 40:
+            if 1 <= pin <= 40:
                 return self.PIN_MAPPINGS[pin]
             else:
                 return -1

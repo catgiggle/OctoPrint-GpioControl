@@ -17,10 +17,11 @@ or manually using this URL:
 ## Configuration
 
 Just add correct GPIO configuration:
+
 - select icon using icon picker (or typing manually) for better identification
 - type name for your device connected to GPIO
 - type pin number according to BCM numeration - for more details please [visit this page](https://pinout.xyz/)
 - select if device is driven for low or high state of GPIO
-  - _active high_ means that device is **on for high state** of GPIO and **off for low state**
-  - _active low_ means that device is **on for low state** of GPIO and **off for high state**
+    - _active high_ means that device is **on for high state** of GPIO and **off for low state**
+    - _active low_ means that device is **on for low state** of GPIO and **off for high state**
 - select if device should be on or off by default eg. after startup
