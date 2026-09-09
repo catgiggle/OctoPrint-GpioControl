@@ -48,6 +48,9 @@ class GpioControlPlugin(
 
         self._logger.info("Detected GPIO mode: {}".format(self.mode))
 
+    def is_template_autoescaped(self):
+        return True
+
     def get_template_configs(self):
         return [
             dict(type="settings", custom_bindings=True),
