@@ -141,6 +141,9 @@ class GpioControlPlugin(
                     elif configuration["default_state"] == "default_off":
                         GPIO.output(pin, GPIO.LOW)
 
+    def is_api_protected(self):
+        return True
+
     def get_api_commands(self):
         return dict(turnGpioOn=["id"], turnGpioOff=["id"], getGpioState=["id"])
 
