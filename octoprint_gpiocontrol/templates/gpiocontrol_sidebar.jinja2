@@ -5,8 +5,8 @@
             <span data-bind="text: name"></span>
         </div>
         <div class="gpiocontrol-button-controls input-prepend input-append span5">
-            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOn, attr : {'disabled' : current_state != 'off'}">ON</button>
-            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOff, attr : {'disabled' : current_state != 'on'}">OFF</button>
+            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOn, attr : {'disabled' : current_state != 'off' || !$parent.canControl()}">ON</button>
+            <button class="btn" data-toggle="dropdown" data-bind="click: $parent.turnGpioOff, attr : {'disabled' : current_state != 'on' || !$parent.canControl()}">OFF</button>
         </div>
     </div>
 </div>

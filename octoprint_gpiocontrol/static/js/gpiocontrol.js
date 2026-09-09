@@ -8,8 +8,14 @@ $(function () {
     function GpioControlViewModel(parameters) {
         var self = this;
         self.settings = parameters[0];
+        self.loginState = parameters[1];
+        self.access = parameters[2];
         self.gpioButtons = ko.observableArray();
         self.gpioConfigurations = ko.observableArray();
+
+        self.canControl = ko.pureComputed(function () {
+            return self.loginState.hasPermission(self.access.permissions.PLUGIN_GPIOCONTROL_CONTROL);
+        });
 
         self.onBeforeBinding = function () {
             self.gpioConfigurations(self.settings.settings.plugins.gpiocontrol.gpio_configurations.slice(0));
@@ -29,6 +35,13 @@ $(function () {
         self.onSettingsBeforeSave = function () {
             self.settings.settings.plugins.gpiocontrol.gpio_configurations(self.gpioConfigurations.slice(0));
         };
+
+        self.onUserPermissionsChanged =
+            self.onUserLoggedIn =
+            self.onUserLoggedOut =
+                function () {
+                    self.updateGpioButtons();
+                };
 
         self.addGpioConfiguration = function () {
             self.gpioConfigurations.push({pin: 0, icon: "fas fa-plug", name: "", active_mode: "active_high", default_state: "default_off"});
@@ -57,6 +70,10 @@ $(function () {
                 }
             }));
 
+            if (!self.loginState.hasPermission(self.access.permissions.PLUGIN_GPIOCONTROL_STATUS)) {
+                return;
+            }
+
             OctoPrint.simpleApiGet("gpiocontrol").then(function (states) {
                 self.gpioButtons().forEach(function (item, index) {
                     self.gpioButtons.replace(item, {
@@ -83,7 +100,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: GpioControlViewModel,
-        dependencies: ["settingsViewModel"],
-        elements: ["#settings_plugin_gpiocontrol", "#sidebar_plugin_gpiocontrol"]
+        dependencies: ["settingsViewModel", "loginStateViewModel", "accessViewModel"],
+        elements: ["#settings_plugin_gpiocontrol", "#sidebar_plugin_gpiocontrol_wrapper"]
     });
 });
