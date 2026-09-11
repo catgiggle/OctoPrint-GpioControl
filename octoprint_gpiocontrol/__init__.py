@@ -1,6 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import, print_function
-from octoprint.server import user_permission
+from octoprint.access import READONLY_GROUP, USER_GROUP
+from octoprint.access.permissions import Permissions
 
 import octoprint.plugin
 import flask
@@ -17,6 +18,25 @@ class GpioControlPlugin(
 ):
     mode = None
 
+    def get_additional_permissions(self):
+        return [
+            dict(
+                key="STATUS",
+                name="Read GPIO status",
+                description="Allows to read the current state of the configured GPIOs",
+                roles=["status"],
+                default_groups=[USER_GROUP, READONLY_GROUP],
+            ),
+            dict(
+                key="CONTROL",
+                name="Control GPIOs",
+                description="Allows to switch the configured GPIOs on and off",
+                roles=["control"],
+                permissions=["PLUGIN_GPIOCONTROL_STATUS"],
+                default_groups=[USER_GROUP],
+            ),
+        ]
+
     def on_startup(self, *args, **kwargs):
         GPIO.setwarnings(False)
 
@@ -28,6 +48,9 @@ class GpioControlPlugin(
 
         self._logger.info("Detected GPIO mode: {}".format(self.mode))
 
+    def is_template_autoescaped(self):
+        return True
+
     def get_template_configs(self):
         return [
             dict(type="settings", custom_bindings=True),
@@ -36,6 +59,8 @@ class GpioControlPlugin(
                 custom_bindings=True,
                 template="gpiocontrol_sidebar.jinja2",
                 icon="map-signs",
+                styles_wrapper=["display: none"],
+                data_bind="visible: loginState.hasPermissionKo(access.permissions.PLUGIN_GPIOCONTROL_STATUS)",
             ),
         ]
 
@@ -119,12 +144,23 @@ class GpioControlPlugin(
                     elif configuration["default_state"] == "default_off":
                         GPIO.output(pin, GPIO.LOW)
 
+    def is_api_protected(self):
+        return True
+
     def get_api_commands(self):
         return dict(turnGpioOn=["id"], turnGpioOff=["id"], getGpioState=["id"])
 
     def on_api_command(self, command, data):
-        if not user_permission.can():
-            return flask.make_response("Insufficient rights", 403)
+        permissions = {
+            "getGpioState": Permissions.PLUGIN_GPIOCONTROL_STATUS,
+            "turnGpioOn": Permissions.PLUGIN_GPIOCONTROL_CONTROL,
+            "turnGpioOff": Permissions.PLUGIN_GPIOCONTROL_CONTROL,
+        }
+
+        permission = permissions.get(command)
+
+        if permission is None or not permission.can():
+            flask.abort(403)
 
         configuration = self._settings.get(["gpio_configurations"])[int(data["id"])]
         pin = self.get_pin_number(int(configuration["pin"]))
@@ -154,6 +190,9 @@ class GpioControlPlugin(
                     GPIO.output(pin, GPIO.LOW)
 
     def on_api_get(self, request):
+        if not Permissions.PLUGIN_GPIOCONTROL_STATUS.can():
+            flask.abort(403)
+
         states = []
 
         for configuration in self._settings.get(["gpio_configurations"]):
@@ -216,5 +255,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.access.permissions": __plugin_implementation__.get_additional_permissions,
     }
